@@ -40,6 +40,7 @@
 #include <mutex>
 
 
+
 using namespace std;
 
 namespace ORB_SLAM2
@@ -281,26 +282,26 @@ cv::Mat Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRe
     {
         if(mbRGB)
         {
-            cvtColor(mImGray,mImGray,CV_RGB2GRAY);
-            cvtColor(imGrayRight,imGrayRight,CV_RGB2GRAY);
+            cvtColor(mImGray,mImGray, cv::ColorConversionCodes::COLOR_RGB2GRAY );
+            cvtColor(imGrayRight,imGrayRight, cv::ColorConversionCodes::COLOR_RGB2GRAY );
         }
         else
         {
-            cvtColor(mImGray,mImGray,CV_BGR2GRAY);
-            cvtColor(imGrayRight,imGrayRight,CV_BGR2GRAY);
+            cvtColor(mImGray,mImGray, cv::ColorConversionCodes::COLOR_BGR2GRAY);
+            cvtColor(imGrayRight,imGrayRight, cv::ColorConversionCodes::COLOR_BGR2GRAY);
         }
     }
     else if(mImGray.channels()==4)
     {
         if(mbRGB)
         {
-            cvtColor(mImGray,mImGray,CV_RGBA2GRAY);
-            cvtColor(imGrayRight,imGrayRight,CV_RGBA2GRAY);
+            cvtColor(mImGray,mImGray, cv::ColorConversionCodes::COLOR_RGBA2GRAY);
+            cvtColor(imGrayRight,imGrayRight, cv::ColorConversionCodes::COLOR_RGBA2GRAY);
         }
         else
         {
-            cvtColor(mImGray,mImGray,CV_BGRA2GRAY);
-            cvtColor(imGrayRight,imGrayRight,CV_BGRA2GRAY);
+            cvtColor(mImGray,mImGray, cv::ColorConversionCodes::COLOR_BGRA2GRAY);
+            cvtColor(imGrayRight,imGrayRight, cv::ColorConversionCodes::COLOR_BGRA2GRAY);
         }
     }
 
@@ -321,16 +322,16 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
     if(mImGray.channels()==3)
     {
         if(mbRGB)
-            cvtColor(mImGray,mImGray,CV_RGB2GRAY);
+            cvtColor(mImGray,mImGray,cv::ColorConversionCodes::COLOR_RGB2GRAY);
         else
-            cvtColor(mImGray,mImGray,CV_BGR2GRAY);
+            cvtColor(mImGray,mImGray,cv::ColorConversionCodes::COLOR_BGR2GRAY);
     }
     else if(mImGray.channels()==4)
     {
         if(mbRGB)
-            cvtColor(mImGray,mImGray,CV_RGBA2GRAY);
+            cvtColor(mImGray,mImGray,cv::ColorConversionCodes::COLOR_RGBA2GRAY);
         else
-            cvtColor(mImGray,mImGray,CV_BGRA2GRAY);
+            cvtColor(mImGray,mImGray,cv::ColorConversionCodes::COLOR_BGRA2GRAY);
     }
 
     //std::cout << "mDepthMapFactor=" << mDepthMapFactor << std::endl;
@@ -355,16 +356,16 @@ cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp)
     if(mImGray.channels()==3)
     {
         if(mbRGB)
-            cvtColor(mImGray,mImGray,CV_RGB2GRAY);
+            cvtColor(mImGray,mImGray,cv::ColorConversionCodes::COLOR_RGB2GRAY);
         else
-            cvtColor(mImGray,mImGray,CV_BGR2GRAY);
+            cvtColor(mImGray,mImGray,cv::ColorConversionCodes::COLOR_BGR2GRAY);
     }
     else if(mImGray.channels()==4)
     {
         if(mbRGB)
-            cvtColor(mImGray,mImGray,CV_RGBA2GRAY);
+            cvtColor(mImGray,mImGray,cv::ColorConversionCodes::COLOR_RGBA2GRAY);
         else
-            cvtColor(mImGray,mImGray,CV_BGRA2GRAY);
+            cvtColor(mImGray,mImGray,cv::ColorConversionCodes::COLOR_BGRA2GRAY);
     }
 
     if(mState==NOT_INITIALIZED || mState==NO_IMAGES_YET)
@@ -1637,8 +1638,10 @@ void Tracking::Reset()
     mpViewer->RequestStop();
 
     cout << "System Reseting" << endl;
-    while(!mpViewer->isStopped())
-        usleep(3000);
+    while( !mpViewer->isStopped() )
+    {
+      //usleep( 3000 );
+    }
 
     // Reset Local Mapping
     cout << "Reseting Local Mapper...";

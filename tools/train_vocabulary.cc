@@ -1,7 +1,7 @@
 #include <time.h>
 #include <iostream>
 #include <vector>
-#include <dirent.h>
+//#include <dirent.h>
 #include <string.h>
 
 #include "Thirdparty/DBoW2/DBoW2/FORB.h"
@@ -9,8 +9,8 @@
 
 #include <opencv2/opencv.hpp>
 #include "opencv2/core/core.hpp"
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
+//#include <opencv2/cv.h>
+//#include <opencv/highgui.h>
 #include <opencv2/features2d/features2d.hpp>
 //#include "opencv2/xfeatures2d.hpp"
 
@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
         cv::waitKey(1);
         if (!src.empty()) {
             // cv_ptr = cv_bridge::toCvShare(i);
-            cv::cvtColor(src, image, CV_RGB2GRAY);
+            cv::cvtColor(src, image, cv::COLOR_RGB2GRAY);
             extractORBFeatures(image, features, extractor);
         }
     }

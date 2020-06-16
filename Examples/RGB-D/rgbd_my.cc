@@ -57,10 +57,10 @@ int main(int argc, char **argv)
     {
         boost::format fmt ("%s/rgb_index/%d.png");
 
-        imRGB = cv::imread( (fmt%argv[3]%index).str(), CV_LOAD_IMAGE_UNCHANGED);
+        imRGB = cv::imread( (fmt%argv[3]%index).str(), cv::IMREAD_UNCHANGED);
         fmt = boost::format("%s/dep_index/%d.png");
 
-        imD = cv::imread( (fmt%argv[3]%index).str(), CV_LOAD_IMAGE_UNCHANGED);
+        imD = cv::imread( (fmt%argv[3]%index).str(), cv::IMREAD_UNCHANGED);
         SLAM.TrackRGBD( imRGB, imD, index  );
 
         ;

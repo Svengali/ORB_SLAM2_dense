@@ -29,6 +29,8 @@
 
 #include<System.h>
 
+#define COMPILEDWITHC11
+
 using namespace std;
 
 void LoadImages(const string &strPathLeft, const string &strPathRight, const string &strPathTimes,
@@ -116,8 +118,8 @@ int main(int argc, char **argv)
     for(int ni=0; ni<nImages; ni++)
     {
         // Read left and right images from file
-        imLeft = cv::imread(vstrImageLeft[ni],CV_LOAD_IMAGE_UNCHANGED);
-        imRight = cv::imread(vstrImageRight[ni],CV_LOAD_IMAGE_UNCHANGED);
+        imLeft = cv::imread(vstrImageLeft[ni], cv::IMREAD_UNCHANGED );
+        imRight = cv::imread(vstrImageRight[ni], cv::IMREAD_UNCHANGED );
 
         if(imLeft.empty())
         {
@@ -165,8 +167,12 @@ int main(int argc, char **argv)
         else if(ni>0)
             T = tframe-vTimeStamp[ni-1];
 
-        if(ttrack<T)
-            usleep((T-ttrack)*1e6);
+        if( ttrack<T )
+        {
+          //usleep( (T-ttrack)*1e6 );
+          std::this_thread::sleep_for( std::chrono::milliseconds( static_cast<int>((T-ttrack)*1e6) ) );
+
+        }
     }
 
     // Stop all threads

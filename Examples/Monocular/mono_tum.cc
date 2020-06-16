@@ -28,6 +28,10 @@
 
 #include<System.h>
 
+
+#define COMPILEDWITHC11
+
+
 using namespace std;
 
 void LoadImages(const string &strFile, vector<string> &vstrImageFilenames,
@@ -65,7 +69,7 @@ int main(int argc, char **argv)
     for(int ni=0; ni<nImages; ni++)
     {
         // Read image from file
-        im = cv::imread(string(argv[3])+"/"+vstrImageFilenames[ni],CV_LOAD_IMAGE_UNCHANGED);
+        im = cv::imread(string(argv[3])+"/"+vstrImageFilenames[ni],cv::IMREAD_UNCHANGED);
         double tframe = vTimestamps[ni];
 
         if(im.empty())
@@ -101,8 +105,11 @@ int main(int argc, char **argv)
         else if(ni>0)
             T = tframe-vTimestamps[ni-1];
 
-        if(ttrack<T)
-            usleep((T-ttrack)*1e6);
+        if( ttrack<T )
+        {
+          //usleep( (T-ttrack)*1e6 );
+          std::this_thread::sleep_for( std::chrono::microseconds( (static_cast<int>((T-ttrack)*1e6) ) ) );
+        }
     }
 
     // Stop all threads

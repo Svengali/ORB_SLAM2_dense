@@ -20,8 +20,10 @@
 #include "pointcloudmapping.h"
 #include <KeyFrame.h>
 #include <opencv2/highgui/highgui.hpp>
-#include <pcl/visualization/cloud_viewer.h>
+//#include <pcl/visualization/cloud_viewer.h>
 #include "Converter.h"
+
+#include <pcl/sse.h>
 
 PointCloudMapping::PointCloudMapping(double resolution_)
 {
@@ -92,6 +94,7 @@ pcl::PointCloud< PointCloudMapping::PointT >::Ptr PointCloudMapping::generatePoi
 
 void PointCloudMapping::viewer()
 {
+/*
     pcl::visualization::CloudViewer viewer("viewer");
     while(1)
     {
@@ -127,5 +130,6 @@ void PointCloudMapping::viewer()
         cout<<"show global map, size="<<globalMap->points.size()<<endl;
         lastKeyframeSize = N;
     }
+*/
 }
 

@@ -34,9 +34,12 @@ bool has_suffix(const std::string &str, const std::string &suffix) {
 namespace ORB_SLAM2
 {
 
-System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
-               const bool bUseViewer):mSensor(sensor),mbReset(false),mbActivateLocalizationMode(false),
-        mbDeactivateLocalizationMode(false)
+System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, const bool bUseViewer)
+  :
+  mSensor(sensor),
+  mbReset(false),
+  mbActivateLocalizationMode(false),
+  mbDeactivateLocalizationMode(false)
 {
     // Output welcome message
     cout << endl <<
@@ -66,23 +69,29 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     float resolution = fsSettings["PointCloudMapping.Resolution"];
     resolution = 0.01;
 
-    //Load ORB Vocabulary
-    cout << endl << "Loading ORB Vocabulary. This could take a while..." << endl;
-    clock_t tStart = clock();
     mpVocabulary = new ORBVocabulary();
-    bool bVocLoad = false; // chose loading method based on file extension
-    if (has_suffix(strVocFile, ".txt"))
-	    bVocLoad = mpVocabulary->loadFromTextFile(strVocFile);
-	else
-	    bVocLoad = mpVocabulary->loadFromBinaryFile(strVocFile);
-    if (!bVocLoad)
+
+    if( !strVocFile.empty() )
     {
+    //Load ORB Vocabulary
+      cout << endl << "Loading ORB Vocabulary. This could take a while..." << endl;
+      clock_t tStart = clock();
+      bool bVocLoad = false; // chose loading method based on file extension
+      if( has_suffix( strVocFile, ".txt" ) )
+        bVocLoad = mpVocabulary->loadFromTextFile( strVocFile );
+      else
+        bVocLoad = mpVocabulary->loadFromBinaryFile( strVocFile );
+      if( !bVocLoad )
+      {
         cerr << "Wrong path to vocabulary. " << endl;
         cerr << "Failed to open at: " << strVocFile << endl;
-        exit(-1);
+        exit( -1 );
+      }
+      printf( "Vocabulary loaded in %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC );
     }
-    printf("Vocabulary loaded in %.2fs\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
-    
+
+
+
     //Create KeyFrame Database
     mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
 
@@ -147,6 +156,7 @@ cv::Mat System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const
             while(!mpLocalMapper->isStopped())
             {
                 //usleep(1000);
+              std::this_thread::sleep_for( std::chrono::microseconds( 1000 ) );
             }
 
             mpTracker->InformOnlyTracking(true);
@@ -295,7 +305,7 @@ void System::Shutdown()
           !mpViewer->isFinished()      || mpLoopCloser->isRunningGBA())
     {
         //usleep(5000);
-        std::this_thread::sleep_for( std::chrono::microseconds( 1000 ) );
+        std::this_thread::sleep_for( std::chrono::microseconds( 5000 ) );
     }
 
     pangolin::BindToContext("ORB-SLAM2: Map Viewer");

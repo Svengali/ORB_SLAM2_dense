@@ -29,6 +29,12 @@
 
 #include"System.h"
 
+#include <boost/filesystem.hpp>
+
+
+namespace fs = boost::filesystem;
+
+
 #define COMPILEDWITHC11
 
 using namespace std;
@@ -36,8 +42,19 @@ using namespace std;
 void LoadImages(const string &strSequence, vector<string> &vstrImageFilenames,
                 vector<double> &vTimestamps);
 
+
+extern int runCalibration( int argc, char *argv[] );
+
+
+
 int main(int argc, char **argv)
 {
+
+  // Yay, done!
+  //runCalibration( argc, argv );
+  //return 1;
+
+
     if(argc != 4)
     {
         cerr << endl << "Usage: ./mono_kitti path_to_vocabulary path_to_settings path_to_sequence" << endl;
@@ -131,6 +148,20 @@ int main(int argc, char **argv)
 
 void LoadImages(const string &strPathToSequence, vector<string> &vstrImageFilenames, vector<double> &vTimestamps)
 {
+
+  fs::directory_iterator itDir( strPathToSequence );
+
+  double time = 0.0;
+
+  for( ; itDir != fs::directory_iterator(); ++itDir )
+  {
+    vstrImageFilenames.push_back( itDir->path().string() );
+    vTimestamps.push_back( time );
+    time += 1.0 / 30.0;
+  }
+
+
+  /*
     ifstream fTimes;
     string strPathTimeFile = strPathToSequence + "/times.txt";
     fTimes.open(strPathTimeFile.c_str());
@@ -159,4 +190,9 @@ void LoadImages(const string &strPathToSequence, vector<string> &vstrImageFilena
         ss << setfill('0') << setw(6) << i;
         vstrImageFilenames[i] = strPrefixLeft + ss.str() + ".png";
     }
+    */
 }
+
+
+
+

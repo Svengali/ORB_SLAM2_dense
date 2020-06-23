@@ -48,7 +48,7 @@ public:
     cv::Mat GetNormal();
     KeyFrame* GetReferenceKeyFrame();
 
-    std::map<KeyFrame*,size_t> GetObservations();
+    const std::map<KeyFrame*,size_t> &GetObservations() const;
     int Observations();
 
     void AddObservation(KeyFrame* pKF,size_t idx);
@@ -83,7 +83,7 @@ public:
 
 public:
     long unsigned int mnId;
-    static long unsigned int nNextId;
+    //static long unsigned int nNextId;
     long int mnFirstKFid;
     long int mnFirstFrame;
     int nObs;

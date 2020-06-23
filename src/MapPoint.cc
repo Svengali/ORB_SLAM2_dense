@@ -22,11 +22,13 @@
 #include "ORBmatcher.h"
 
 #include<mutex>
+#include <atomic>
 
 namespace ORB_SLAM2
 {
 
-long unsigned int MapPoint::nNextId=0;
+std::atomic<long unsigned int> sNextId = 128;
+
 mutex MapPoint::mGlobalMutex;
 
 MapPoint::MapPoint(const cv::Mat &Pos, KeyFrame *pRefKF, Map* pMap):
@@ -39,8 +41,10 @@ MapPoint::MapPoint(const cv::Mat &Pos, KeyFrame *pRefKF, Map* pMap):
     mNormalVector = cv::Mat::zeros(3,1,CV_32F);
 
     // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
-    unique_lock<mutex> lock(mpMap->mMutexPointCreation);
-    mnId=nNextId++;
+    //unique_lock<mutex> lock(mpMap->mMutexPointCreation);
+    //mnId=nNextId++;
+    const auto newId = sNextId++;
+    mnId = newId;
 }
 
 MapPoint::MapPoint(const cv::Mat &Pos, Map* pMap, Frame* pFrame, const int &idxF):
@@ -66,8 +70,10 @@ MapPoint::MapPoint(const cv::Mat &Pos, Map* pMap, Frame* pFrame, const int &idxF
     pFrame->mDescriptors.row(idxF).copyTo(mDescriptor);
 
     // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
-    unique_lock<mutex> lock(mpMap->mMutexPointCreation);
-    mnId=nNextId++;
+    //unique_lock<mutex> lock(mpMap->mMutexPointCreation);
+    //mnId=nNextId++;
+    const auto newId = sNextId++;
+    mnId = newId;
 }
 
 void MapPoint::SetWorldPos(const cv::Mat &Pos)
@@ -136,9 +142,11 @@ void MapPoint::EraseObservation(KeyFrame* pKF)
         SetBadFlag();
 }
 
-map<KeyFrame*, size_t> MapPoint::GetObservations()
+const map<KeyFrame*, size_t> &MapPoint::GetObservations() const
 {
-    unique_lock<mutex> lock(mMutexFeatures);
+  auto *non_const = const_cast<MapPoint*>(this);
+
+    unique_lock<mutex> lock( non_const->mMutexFeatures );
     return mObservations;
 }
 
@@ -276,8 +284,6 @@ void MapPoint::ComputeDistinctiveDescriptors()
 
     float *Distances = static_cast<float*>(_malloca(bufferSize));
 
-    //float Distances[N][N];
-
     for(size_t i=0;i<N;i++)
     {
         Distances[i*N+i]=0;
@@ -294,8 +300,12 @@ void MapPoint::ComputeDistinctiveDescriptors()
     int BestIdx = 0;
     for(size_t i=0;i<N;i++)
     {
-        vector<int> vDists(Distances[i],Distances[i]+N);
+      float *pDist = &Distances[i * N];
+
+        vector<int> vDists( pDist,pDist + N);
+
         sort(vDists.begin(),vDists.end());
+
         int median = vDists[0.5*(N-1)];
 
         if(median<BestMedian)

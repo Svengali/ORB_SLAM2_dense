@@ -39,7 +39,7 @@
 
 #include <mutex>
 
-
+static const int sMaxLocalKeyframes = 160;
 
 using namespace std;
 
@@ -487,7 +487,7 @@ void Tracking::Track()
 
                         if(mbVO)
                         {
-                            for(int i =0; i<mCurrentFrame.N; i++)
+                            for(int i =0; i<mCurrentFrame.mKeypointCount; i++)
                             {
                                 if(mCurrentFrame.mvpMapPoints[i] && !mCurrentFrame.mvbOutlier[i])
                                 {
@@ -548,7 +548,7 @@ void Tracking::Track()
             mpMapDrawer->SetCurrentCameraPose(mCurrentFrame.mTcw);
 
             // Clean temporal point matches
-            for(int i=0; i<mCurrentFrame.N; i++)
+            for(int i=0; i<mCurrentFrame.mKeypointCount; i++)
             {
                 MapPoint* pMP = mCurrentFrame.mvpMapPoints[i];
                 if(pMP)
@@ -577,7 +577,7 @@ void Tracking::Track()
             // pass to the new keyframe, so that bundle adjustment will finally decide
             // if they are outliers or not. We don't want next frame to estimate its position
             // with those points so we discard them in the frame.
-            for(int i=0; i<mCurrentFrame.N;i++)
+            for(int i=0; i<mCurrentFrame.mKeypointCount;i++)
             {
                 if(mCurrentFrame.mvpMapPoints[i] && mCurrentFrame.mvbOutlier[i])
                     mCurrentFrame.mvpMapPoints[i]=static_cast<MapPoint*>(NULL);
@@ -624,7 +624,7 @@ void Tracking::Track()
 
 void Tracking::StereoInitialization()
 {
-    if(mCurrentFrame.N>500)
+    if(mCurrentFrame.mKeypointCount>500)
     {
         // Set Frame pose to the origin
         mCurrentFrame.SetPose(cv::Mat::eye(4,4,CV_32F));
@@ -636,7 +636,7 @@ void Tracking::StereoInitialization()
         mpMap->AddKeyFrame(pKFini);
 
         // Create MapPoints and asscoiate to KeyFrame
-        for(int i=0; i<mCurrentFrame.N;i++)
+        for(int i=0; i<mCurrentFrame.mKeypointCount;i++)
         {
             float z = mCurrentFrame.mvDepth[i];
             if(z>0)
@@ -854,7 +854,7 @@ void Tracking::CreateInitialMapMonocular()
 
 void Tracking::CheckReplacedInLastFrame()
 {
-    for(int i =0; i<mLastFrame.N; i++)
+    for(int i =0; i<mLastFrame.mKeypointCount; i++)
     {
         MapPoint* pMP = mLastFrame.mvpMapPoints[i];
 
@@ -892,7 +892,7 @@ bool Tracking::TrackReferenceKeyFrame()
 
     // Discard outliers
     int nmatchesMap = 0;
-    for(int i =0; i<mCurrentFrame.N; i++)
+    for(int i =0; i<mCurrentFrame.mKeypointCount; i++)
     {
         if(mCurrentFrame.mvpMapPoints[i])
         {
@@ -928,8 +928,8 @@ void Tracking::UpdateLastFrame()
     // Create "visual odometry" MapPoints
     // We sort points according to their measured depth by the stereo/RGB-D sensor
     vector<pair<float,int> > vDepthIdx;
-    vDepthIdx.reserve(mLastFrame.N);
-    for(int i=0; i<mLastFrame.N;i++)
+    vDepthIdx.reserve(mLastFrame.mKeypointCount);
+    for(int i=0; i<mLastFrame.mKeypointCount;i++)
     {
         float z = mLastFrame.mvDepth[i];
         if(z>0)
@@ -1015,7 +1015,7 @@ bool Tracking::TrackWithMotionModel()
 
     // Discard outliers
     int nmatchesMap = 0;
-    for(int i =0; i<mCurrentFrame.N; i++)
+    for(int i =0; i<mCurrentFrame.mKeypointCount; i++)
     {
         if(mCurrentFrame.mvpMapPoints[i])
         {
@@ -1057,7 +1057,7 @@ bool Tracking::TrackLocalMap()
     mnMatchesInliers = 0;
 
     // Update MapPoints Statistics
-    for(int i=0; i<mCurrentFrame.N; i++)
+    for(int i=0; i<mCurrentFrame.mKeypointCount; i++)
     {
         if(mCurrentFrame.mvpMapPoints[i])
         {
@@ -1122,7 +1122,7 @@ bool Tracking::NeedNewKeyFrame()
     int nTotal= 0;
     if(mSensor!=System::MONOCULAR)
     {
-        for(int i =0; i<mCurrentFrame.N; i++)
+        for(int i =0; i<mCurrentFrame.mKeypointCount; i++)
         {
             if(mCurrentFrame.mvDepth[i]>0 && mCurrentFrame.mvDepth[i]<mThDepth)
             {
@@ -1207,8 +1207,8 @@ void Tracking::CreateNewKeyFrame()
         // We create all those MapPoints whose depth < mThDepth.
         // If there are less than 100 close points we create the 100 closest.
         vector<pair<float,int> > vDepthIdx;
-        vDepthIdx.reserve(mCurrentFrame.N);
-        for(int i=0; i<mCurrentFrame.N; i++)
+        vDepthIdx.reserve(mCurrentFrame.mKeypointCount);
+        for(int i=0; i<mCurrentFrame.mKeypointCount; i++)
         {
             float z = mCurrentFrame.mvDepth[i];
             if(z>0)
@@ -1364,16 +1364,26 @@ void Tracking::UpdateLocalKeyFrames()
 {
     // Each map point vote for the keyframes in which it has been observed
     map<KeyFrame*,int> keyframeCounter;
-    for(int i=0; i<mCurrentFrame.N; i++)
+    for(int i=0; i<mCurrentFrame.mKeypointCount; i++)
     {
         if(mCurrentFrame.mvpMapPoints[i])
         {
             MapPoint* pMP = mCurrentFrame.mvpMapPoints[i];
             if(!pMP->isBad())
             {
-                const map<KeyFrame*,size_t> observations = pMP->GetObservations();
-                for(map<KeyFrame*,size_t>::const_iterator it=observations.begin(), itend=observations.end(); it!=itend; it++)
-                    keyframeCounter[it->first]++;
+                const map<KeyFrame*,size_t> &observations = pMP->GetObservations();
+                for( map<KeyFrame *, size_t>::const_iterator it=observations.begin(), itend=observations.end(); it!=itend; it++ )
+                {
+                  auto kfcIt = keyframeCounter.find( it->first );
+                  if( kfcIt != keyframeCounter.end() )
+                  {
+                    kfcIt->second += 1;
+                  }
+                  else
+                  {
+                    keyframeCounter.insert( std::make_pair( it->first, 0 ));
+                  }
+                }
             }
             else
             {
@@ -1409,12 +1419,21 @@ void Tracking::UpdateLocalKeyFrames()
         pKF->mnTrackReferenceForFrame = mCurrentFrame.mnId;
     }
 
+    // @@@@ TODO Hitting an error in here that doesnt look like it should hit
+
+    vector<KeyFrame *>::const_iterator itKF=mvpLocalKeyFrames.begin();
+    auto itEndKF = mvpLocalKeyFrames.end();
+
+    if( itKF._Getcont() != itEndKF._Getcont() )
+    {
+
+    }
 
     // Include also some not-already-included keyframes that are neighbors to already-included keyframes
-    for(vector<KeyFrame*>::const_iterator itKF=mvpLocalKeyFrames.begin(), itEndKF=mvpLocalKeyFrames.end(); itKF!=itEndKF; itKF++)
+    for( ; itKF!=itEndKF; ++itKF)
     {
         // Limit the number of keyframes
-        if(mvpLocalKeyFrames.size()>80)
+        if(mvpLocalKeyFrames.size()>sMaxLocalKeyframes )
             break;
 
         KeyFrame* pKF = *itKF;
@@ -1574,7 +1593,7 @@ bool Tracking::Relocalization()
                 if(nGood<10)
                     continue;
 
-                for(int io =0; io<mCurrentFrame.N; io++)
+                for(int io =0; io<mCurrentFrame.mKeypointCount; io++)
                     if(mCurrentFrame.mvbOutlier[io])
                         mCurrentFrame.mvpMapPoints[io]=static_cast<MapPoint*>(NULL);
 
@@ -1592,7 +1611,7 @@ bool Tracking::Relocalization()
                         if(nGood>30 && nGood<50)
                         {
                             sFound.clear();
-                            for(int ip =0; ip<mCurrentFrame.N; ip++)
+                            for(int ip =0; ip<mCurrentFrame.mKeypointCount; ip++)
                                 if(mCurrentFrame.mvpMapPoints[ip])
                                     sFound.insert(mCurrentFrame.mvpMapPoints[ip]);
                             nadditional =matcher2.SearchByProjection(mCurrentFrame,vpCandidateKFs[i],sFound,3,64);
@@ -1602,7 +1621,7 @@ bool Tracking::Relocalization()
                             {
                                 nGood = Optimizer::PoseOptimization(&mCurrentFrame);
 
-                                for(int io =0; io<mCurrentFrame.N; io++)
+                                for(int io =0; io<mCurrentFrame.mKeypointCount; io++)
                                     if(mCurrentFrame.mvbOutlier[io])
                                         mCurrentFrame.mvpMapPoints[io]=NULL;
                             }
@@ -1641,6 +1660,7 @@ void Tracking::Reset()
     while( !mpViewer->isStopped() )
     {
       //usleep( 3000 );
+      std::this_thread::sleep_for( std::chrono::microseconds( 3000 ) );
     }
 
     // Reset Local Mapping

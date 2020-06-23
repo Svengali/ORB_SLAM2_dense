@@ -39,7 +39,7 @@ Frame::Frame()
 Frame::Frame(const Frame &frame)
     :mpORBvocabulary(frame.mpORBvocabulary), mpORBextractorLeft(frame.mpORBextractorLeft), mpORBextractorRight(frame.mpORBextractorRight),
      mTimeStamp(frame.mTimeStamp), mK(frame.mK.clone()), mDistCoef(frame.mDistCoef.clone()),
-     mbf(frame.mbf), mb(frame.mb), mThDepth(frame.mThDepth), N(frame.N), mvKeys(frame.mvKeys),
+     mbf(frame.mbf), mb(frame.mb), mThDepth(frame.mThDepth), mKeypointCount(frame.mKeypointCount), mvKeys(frame.mvKeys),
      mvKeysRight(frame.mvKeysRight), mvKeysUn(frame.mvKeysUn),  mvuRight(frame.mvuRight),
      mvDepth(frame.mvDepth), mBowVec(frame.mBowVec), mFeatVec(frame.mFeatVec),
      mDescriptors(frame.mDescriptors.clone()), mDescriptorsRight(frame.mDescriptorsRight.clone()),
@@ -80,7 +80,7 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
     threadLeft.join();
     threadRight.join();
 
-    N = mvKeys.size();
+    mKeypointCount = mvKeys.size();
 
     if(mvKeys.empty())
         return;
@@ -89,8 +89,8 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
 
     ComputeStereoMatches();
 
-    mvpMapPoints = vector<MapPoint*>(N,static_cast<MapPoint*>(NULL));    
-    mvbOutlier = vector<bool>(N,false);
+    mvpMapPoints = vector<MapPoint*>(mKeypointCount,static_cast<MapPoint*>(NULL));    
+    mvbOutlier = vector<bool>(mKeypointCount,false);
 
 
     // This is done only for the first Frame (or after a change in the calibration)
@@ -135,7 +135,7 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
     // ORB extraction
     ExtractORB(0,imGray);
 
-    N = mvKeys.size();
+    mKeypointCount = mvKeys.size();
 
     if(mvKeys.empty())
         return;
@@ -144,8 +144,8 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
 
     ComputeStereoFromRGBD(imDepth);
 
-    mvpMapPoints = vector<MapPoint*>(N,static_cast<MapPoint*>(NULL));
-    mvbOutlier = vector<bool>(N,false);
+    mvpMapPoints = vector<MapPoint*>(mKeypointCount,static_cast<MapPoint*>(NULL));
+    mvbOutlier = vector<bool>(mKeypointCount,false);
 
     // This is done only for the first Frame (or after a change in the calibration)
     if(mbInitialComputations)
@@ -190,7 +190,7 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
     // ORB extraction
     ExtractORB(0,imGray);
 
-    N = mvKeys.size();
+    mKeypointCount = mvKeys.size();
 
     if(mvKeys.empty())
         return;
@@ -198,11 +198,11 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
     UndistortKeyPoints();
 
     // Set no stereo information
-    mvuRight = vector<float>(N,-1);
-    mvDepth = vector<float>(N,-1);
+    mvuRight = vector<float>(mKeypointCount,-1);
+    mvDepth = vector<float>(mKeypointCount,-1);
 
-    mvpMapPoints = vector<MapPoint*>(N,static_cast<MapPoint*>(NULL));
-    mvbOutlier = vector<bool>(N,false);
+    mvpMapPoints = vector<MapPoint*>(mKeypointCount,static_cast<MapPoint*>(NULL));
+    mvbOutlier = vector<bool>(mKeypointCount,false);
 
     // This is done only for the first Frame (or after a change in the calibration)
     if(mbInitialComputations)
@@ -229,12 +229,12 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
 
 void Frame::AssignFeaturesToGrid()
 {
-    int nReserve = 0.5f*N/(FRAME_GRID_COLS*FRAME_GRID_ROWS);
+    int nReserve = 0.5f*mKeypointCount/(FRAME_GRID_COLS*FRAME_GRID_ROWS);
     for(unsigned int i=0; i<FRAME_GRID_COLS;i++)
         for (unsigned int j=0; j<FRAME_GRID_ROWS;j++)
             mGrid[i][j].reserve(nReserve);
 
-    for(int i=0;i<N;i++)
+    for(int i=0;i<mKeypointCount;i++)
     {
         const cv::KeyPoint &kp = mvKeysUn[i];
 
@@ -327,7 +327,7 @@ bool Frame::isInFrustum(MapPoint *pMP, float viewingCosLimit)
 vector<size_t> Frame::GetFeaturesInArea(const float &x, const float  &y, const float  &r, const int minLevel, const int maxLevel) const
 {
     vector<size_t> vIndices;
-    vIndices.reserve(N);
+    vIndices.reserve(mKeypointCount);
 
     const int nMinCellX = max(0,(int)floor((x-mnMinX-r)*mfGridElementWidthInv));
     if(nMinCellX>=FRAME_GRID_COLS)
@@ -410,8 +410,8 @@ void Frame::UndistortKeyPoints()
     }
 
     // Fill matrix with points
-    cv::Mat mat(N,2,CV_32F);
-    for(int i=0; i<N; i++)
+    cv::Mat mat(mKeypointCount,2,CV_32F);
+    for(int i=0; i<mKeypointCount; i++)
     {
         mat.at<float>(i,0)=mvKeys[i].pt.x;
         mat.at<float>(i,1)=mvKeys[i].pt.y;
@@ -423,8 +423,8 @@ void Frame::UndistortKeyPoints()
     mat=mat.reshape(1);
 
     // Fill undistorted keypoint vector
-    mvKeysUn.resize(N);
-    for(int i=0; i<N; i++)
+    mvKeysUn.resize(mKeypointCount);
+    for(int i=0; i<mKeypointCount; i++)
     {
         cv::KeyPoint kp = mvKeys[i];
         kp.pt.x=mat.at<float>(i,0);
@@ -465,8 +465,8 @@ void Frame::ComputeImageBounds(const cv::Mat &imLeft)
 
 void Frame::ComputeStereoMatches()
 {
-    mvuRight = vector<float>(N,-1.0f);
-    mvDepth = vector<float>(N,-1.0f);
+    mvuRight = vector<float>(mKeypointCount,-1.0f);
+    mvDepth = vector<float>(mKeypointCount,-1.0f);
 
     const int thOrbDist = (ORBmatcher::TH_HIGH+ORBmatcher::TH_LOW)/2;
 
@@ -499,9 +499,9 @@ void Frame::ComputeStereoMatches()
 
     // For each left keypoint search a match in the right image
     vector<pair<int, int> > vDistIdx;
-    vDistIdx.reserve(N);
+    vDistIdx.reserve(mKeypointCount);
 
-    for(int iL=0; iL<N; iL++)
+    for(int iL=0; iL<mKeypointCount; iL++)
     {
         const cv::KeyPoint &kpL = mvKeys[iL];
         const int &levelL = kpL.octave;
@@ -642,10 +642,10 @@ void Frame::ComputeStereoMatches()
 
 void Frame::ComputeStereoFromRGBD(const cv::Mat &imDepth)
 {
-    mvuRight = vector<float>(N,-1);
-    mvDepth = vector<float>(N,-1);
+    mvuRight = vector<float>(mKeypointCount,-1);
+    mvDepth = vector<float>(mKeypointCount,-1);
 
-    for(int i=0; i<N; i++)
+    for(int i=0; i<mKeypointCount; i++)
     {
         const cv::KeyPoint &kp = mvKeys[i];
         const cv::KeyPoint &kpU = mvKeysUn[i];

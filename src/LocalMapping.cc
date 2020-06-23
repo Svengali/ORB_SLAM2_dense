@@ -92,7 +92,7 @@ void LocalMapping::Run()
             while(isStopped() && !CheckFinish())
             {
                 //usleep(3000);
-              std::this_thread::sleep_for( std::chrono::microseconds( 1000 ) );
+              std::this_thread::sleep_for( std::chrono::microseconds( 3000 ) );
             }
             if(CheckFinish())
                 break;
@@ -107,7 +107,7 @@ void LocalMapping::Run()
             break;
 
         //usleep(3000);
-        std::this_thread::sleep_for( std::chrono::microseconds( 1000 ) );
+        std::this_thread::sleep_for( std::chrono::microseconds( 3000 ) );
     }
 
     SetFinish();
@@ -719,7 +719,7 @@ void LocalMapping::RequestReset()
                 break;
         }
         //usleep(3000);
-        std::this_thread::sleep_for( std::chrono::microseconds( 1000 ) );
+        std::this_thread::sleep_for( std::chrono::microseconds( 3000 ) );
     }
 }
 

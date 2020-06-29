@@ -55,6 +55,7 @@ void Viewer::Run()
 {
     mbFinished = false;
 
+    //*
     pangolin::CreateWindowAndBind("ORB-SLAM2: Map Viewer",1024,768);
 
     // 3D Mouse handler requires depth testing to be enabled
@@ -91,8 +92,15 @@ void Viewer::Run()
     bool bFollow = true;
     bool bLocalizationMode = false;
 
+    //*/
+
     while(1)
     {
+      
+      std::this_thread::sleep_for( std::chrono::microseconds( 300000 ) );
+
+      
+      //*
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         mpMapDrawer->GetCurrentOpenGLCameraMatrix(Twc);
@@ -163,6 +171,8 @@ void Viewer::Run()
 
         if(CheckFinish())
             break;
+
+            //*/
     }
 
     SetFinish();

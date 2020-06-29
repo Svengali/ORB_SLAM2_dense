@@ -1422,15 +1422,9 @@ void Tracking::UpdateLocalKeyFrames()
     // @@@@ TODO Hitting an error in here that doesnt look like it should hit
 
     vector<KeyFrame *>::const_iterator itKF=mvpLocalKeyFrames.begin();
-    auto itEndKF = mvpLocalKeyFrames.end();
-
-    if( itKF._Getcont() != itEndKF._Getcont() )
-    {
-
-    }
 
     // Include also some not-already-included keyframes that are neighbors to already-included keyframes
-    for( ; itKF!=itEndKF; ++itKF)
+    for( ; itKF!=mvpLocalKeyFrames.end(); ++itKF)
     {
         // Limit the number of keyframes
         if(mvpLocalKeyFrames.size()>sMaxLocalKeyframes )

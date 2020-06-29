@@ -32,7 +32,7 @@ Map::Map():mnMaxKFid(0)
 void Map::AddKeyFrame(KeyFrame *pKF)
 {
     unique_lock<mutex> lock(mMutexMap);
-    mspKeyFrames.insert(pKF);
+    mspKeyFrames.push_back(pKF);
     if(pKF->mnId>mnMaxKFid)
         mnMaxKFid=pKF->mnId;
 }
@@ -55,7 +55,15 @@ void Map::EraseMapPoint(MapPoint *pMP)
 void Map::EraseKeyFrame(KeyFrame *pKF)
 {
     unique_lock<mutex> lock(mMutexMap);
-    mspKeyFrames.erase(pKF);
+
+    for(auto itKF = mspKeyFrames.begin(); itKF != mspKeyFrames.end(); ++itKF)
+    {
+      if( *itKF == pKF )
+      {
+        mspKeyFrames.erase(itKF);
+        return;
+      }
+    }
 
     // TODO: This only erase the pointer.
     // Delete the MapPoint
@@ -71,6 +79,12 @@ vector<KeyFrame*> Map::GetAllKeyFrames()
 {
     unique_lock<mutex> lock(mMutexMap);
     return vector<KeyFrame*>(mspKeyFrames.begin(),mspKeyFrames.end());
+}
+
+KeyFrame * Map::GetKeyFrame( const size_t index ) const
+{
+  unique_lock<mutex> lock( const_cast<Map*>(this)->mMutexMap );
+  return mspKeyFrames[index];
 }
 
 vector<MapPoint*> Map::GetAllMapPoints()
@@ -108,7 +122,9 @@ void Map::clear()
     for(set<MapPoint*>::iterator sit=mspMapPoints.begin(), send=mspMapPoints.end(); sit!=send; sit++)
         delete *sit;
 
-    for(set<KeyFrame*>::iterator sit=mspKeyFrames.begin(), send=mspKeyFrames.end(); sit!=send; sit++)
+
+
+    for(auto sit=mspKeyFrames.begin(), send=mspKeyFrames.end(); sit!=send; sit++)
         delete *sit;
 
     mspMapPoints.clear();

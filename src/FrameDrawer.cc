@@ -37,6 +37,7 @@ FrameDrawer::FrameDrawer(Map* pMap):mpMap(pMap)
 
 cv::Mat FrameDrawer::DrawFrame()
 {
+/*
     cv::Mat im;
     vector<cv::KeyPoint> vIniKeys; // Initialization: KeyPoints in reference frame
     vector<int> vMatches; // Initialization: correspondeces with reference keypoints
@@ -123,6 +124,8 @@ cv::Mat FrameDrawer::DrawFrame()
 
     cv::Mat imWithInfo;
     DrawTextInfo(im,state, imWithInfo);
+*/
+  cv::Mat imWithInfo;
 
     return imWithInfo;
 }
@@ -130,6 +133,7 @@ cv::Mat FrameDrawer::DrawFrame()
 
 void FrameDrawer::DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText)
 {
+/*
     stringstream s;
     if(nState==Tracking::NO_IMAGES_YET)
         s << " WAITING FOR IMAGES";
@@ -163,11 +167,12 @@ void FrameDrawer::DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText)
     im.copyTo(imText.rowRange(0,im.rows).colRange(0,im.cols));
     imText.rowRange(im.rows,imText.rows) = cv::Mat::zeros(textSize.height+10,im.cols,im.type());
     cv::putText(imText,s.str(),cv::Point(5,imText.rows-5),cv::FONT_HERSHEY_PLAIN,1,cv::Scalar(255,255,255),1,8);
-
+*/
 }
 
 void FrameDrawer::Update(Tracking *pTracker)
 {
+/*
     unique_lock<mutex> lock(mMutex);
     pTracker->mImGray.copyTo(mIm);
     mvCurrentKeys=pTracker->mCurrentFrame.mvKeys;
@@ -199,6 +204,8 @@ void FrameDrawer::Update(Tracking *pTracker)
             }
         }
     }
+*/
+
     mState=static_cast<int>(pTracker->mLastProcessedState);
 }
 

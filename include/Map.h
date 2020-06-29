@@ -24,6 +24,7 @@
 #include "MapPoint.h"
 #include "KeyFrame.h"
 #include <set>
+#include <vector>
 
 #include <mutex>
 
@@ -46,6 +47,10 @@ public:
     void EraseKeyFrame(KeyFrame* pKF);
     void SetReferenceMapPoints(const std::vector<MapPoint*> &vpMPs);
 
+
+    KeyFrame *GetKeyFrame( const size_t frame ) const;
+
+
     std::vector<KeyFrame*> GetAllKeyFrames();
     std::vector<MapPoint*> GetAllMapPoints();
     std::vector<MapPoint*> GetReferenceMapPoints();
@@ -66,7 +71,7 @@ public:
 
 protected:
     std::set<MapPoint*> mspMapPoints;
-    std::set<KeyFrame*> mspKeyFrames;
+    std::vector<KeyFrame*> mspKeyFrames;
 
     std::vector<MapPoint*> mvpReferenceMapPoints;
 

@@ -43,6 +43,7 @@ MapDrawer::MapDrawer(Map* pMap, const string &strSettingPath):mpMap(pMap)
 
 void MapDrawer::DrawMapPoints()
 {
+/*
     const vector<MapPoint*> &vpMPs = mpMap->GetAllMapPoints();
     const vector<MapPoint*> &vpRefMPs = mpMap->GetReferenceMapPoints();
 
@@ -78,10 +79,12 @@ void MapDrawer::DrawMapPoints()
     }
 
     glEnd();
+*/
 }
 
 void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)
 {
+/*
     const float &w = mKeyFrameSize;
     const float h = w*0.75;
     const float z = w*0.6;
@@ -174,10 +177,12 @@ void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)
 
         glEnd();
     }
+*/
 }
 
 void MapDrawer::DrawCurrentCamera(pangolin::OpenGlMatrix &Twc)
 {
+/*
     const float &w = mCameraSize;
     const float h = w*0.75;
     const float z = w*0.6;
@@ -216,13 +221,14 @@ void MapDrawer::DrawCurrentCamera(pangolin::OpenGlMatrix &Twc)
     glEnd();
 
     glPopMatrix();
+*/
 }
 
 
 void MapDrawer::SetCurrentCameraPose(const cv::Mat &Tcw)
 {
-    unique_lock<mutex> lock(mMutexCamera);
-    mCameraPose = Tcw.clone();
+//    unique_lock<mutex> lock(mMutexCamera);
+//    mCameraPose = Tcw.clone();
 }
 
 void MapDrawer::GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M)

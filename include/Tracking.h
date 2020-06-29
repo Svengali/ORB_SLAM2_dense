@@ -124,6 +124,10 @@ public:
 
     void Reset();
 
+    shared_ptr<PointCloudMapping>  mpPointCloudMapping;
+
+
+
 protected:
 
     // Main tracking function. It is independent of the input sensor.
@@ -224,7 +228,6 @@ protected:
 
     list<MapPoint*> mlpTemporalPoints;
     
-    shared_ptr<PointCloudMapping>  mpPointCloudMapping;
 };
 
 } //namespace ORB_SLAM

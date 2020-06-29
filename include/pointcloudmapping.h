@@ -42,7 +42,6 @@ public:
     void shutdown();
     void viewer();
     
-protected:
     PointCloud::Ptr generatePointCloud(KeyFrame* kf, cv::Mat& color, cv::Mat& depth);
     
     PointCloud::Ptr globalMap;
@@ -63,6 +62,8 @@ protected:
     
     double resolution = 0.04;
     pcl::VoxelGrid<PointT>  voxel;
+
+protected:
 };
 
 #endif // POINTCLOUDMAPPING_H
